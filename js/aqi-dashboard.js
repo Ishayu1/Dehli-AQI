@@ -40,9 +40,10 @@
 
   function scrollToDetail() {
     if (EMBED) {
-      (viewDetail?.querySelector(".detail-nav") || viewDetail)?.scrollIntoView({
+      (document.querySelector(".dashboard-detail-rail") || viewDetail)?.scrollIntoView({
         behavior: "smooth",
-        block: "start",
+        block: "nearest",
+        inline: "nearest",
       });
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -284,7 +285,7 @@
   }
 
   /* ─── Detail view ─── */
-  function openDetail(year, month) {
+  function openDetail(year, month, shouldScroll = true) {
     state.selectedMonth = { year, month };
 
     const rec = monthData(year, month);
@@ -292,7 +293,6 @@
     const fcYear = DATA?.forecastYear ?? 2026;
     const partial = partialMeta(year, month);
 
-    viewHome.classList.remove("view-active");
     viewDetail.classList.add("view-active");
     $("#app")?.classList.add("is-detail");
 
@@ -312,29 +312,24 @@
     state.isDrawing = false;
     $("#reveal-panel")?.classList.add("hidden");
     $("#btn-finish").disabled = false;
+    document.querySelector(".dashboard-predict-stage")?.classList.add("is-active");
 
     afterLayout(() => {
       renderDetailCharts(year, month);
       setupPredictChart(year, month);
-      scrollToDetail();
+      if (shouldScroll) scrollToDetail();
     });
   }
 
   function closeDetail() {
     viewDetail.classList.remove("view-active");
-    viewHome.classList.add("view-active");
     $("#app")?.classList.remove("is-detail");
+    document.querySelector(".dashboard-predict-stage")?.classList.remove("is-active");
     state.selectedMonth = null;
-    if (EMBED) {
-      document.getElementById("aqi-dashboard-section")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
   }
 
   function chartMargins() {
-    return { top: 28, right: 24, bottom: 36, left: 48 };
+    return { top: 14, right: 14, bottom: 26, left: 58 };
   }
 
   function mountSvg(container, W, H) {
@@ -347,7 +342,30 @@
       .attr("preserveAspectRatio", "xMidYMid meet")
       .attr("role", "img")
       .style("display", "block")
-      .style("overflow", "visible");
+      .style("overflow", "hidden");
+  }
+
+  function drawGrid(g, y, w, ticks = 4) {
+    g.append("g")
+      .attr("class", "grid")
+      .call(d3.axisLeft(y).tickSize(-w).tickFormat("").ticks(ticks))
+      .call((sel) => sel.select(".domain").remove());
+  }
+
+  function drawAxes(g, x, y, h, xTicks = 5, yTicks = 4) {
+    g.append("g")
+      .attr("class", "axis x-axis")
+      .attr("transform", `translate(0,${h})`)
+      .call(d3.axisBottom(x).ticks(xTicks).tickFormat((d) => String(Math.round(d))));
+
+    g.append("g")
+      .attr("class", "axis y-axis")
+      .call(
+        d3
+          .axisLeft(y)
+          .ticks(yTicks)
+          .tickFormat((d) => d3.format(",")(Math.round(d)))
+      );
   }
 
   let chartUid = 0;
@@ -361,8 +379,6 @@
     if (!daily.length) return;
 
     renderAqiChart("#chart-aqi", daily, `${MONTHS[month - 1]} ${year}`);
-    renderPollutantChart("#chart-pollutants", daily);
-    renderHourlyChart("#chart-hourly", hourlySeries(year, month));
   }
 
   function renderAqiChart(selector, daily, title) {
@@ -370,14 +386,16 @@
     el.selectAll("*").remove();
     const margin = chartMargins();
     const W = chartContainerWidth(el.node());
-    const H = 240;
+    const H = 260;
     const w = W - margin.left - margin.right;
     const h = H - margin.top - margin.bottom;
 
     const svg = mountSvg(selector, W, H);
+    const clipId = nextGradId("chart-clip");
+    svg.append("defs").append("clipPath").attr("id", clipId).append("rect").attr("width", w).attr("height", h);
 
     const gradId = nextGradId("area-gradient-aqi");
-    const defs = svg.append("defs");
+    const defs = svg.select("defs");
     const grad = defs
       .append("linearGradient")
       .attr("id", gradId)
@@ -397,17 +415,7 @@
       .nice()
       .range([h, 0]);
 
-    g.append("g")
-      .attr("class", "grid")
-      .call(d3.axisLeft(y).tickSize(-w).tickFormat("").ticks(8))
-      .call((sel) => sel.select(".domain").remove());
-
-    g.append("g")
-      .attr("class", "axis")
-      .attr("transform", `translate(0,${h})`)
-      .call(d3.axisBottom(x).ticks(8).tickFormat((d) => `Day ${d}`));
-
-    g.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(8));
+    drawAxes(g, x, y, h, 5, 4);
 
     const line = d3
       .line()
@@ -422,188 +430,17 @@
       .y1((d) => y(d.aqi))
       .curve(d3.curveMonotoneX);
 
-    g.append("path").datum(daily).attr("class", "area-aqi").attr("fill", `url(#${gradId})`).attr("d", area);
-    g.append("path").datum(daily).attr("class", "line-aqi").attr("d", line);
+    const plotG = g.append("g").attr("clip-path", `url(#${clipId})`);
+    plotG.append("path").datum(daily).attr("class", "area-aqi").attr("fill", `url(#${gradId})`).attr("d", area);
+    plotG.append("path").datum(daily).attr("class", "line-aqi").attr("d", line);
 
-    g.selectAll(".dot-aqi")
+    plotG.selectAll(".dot-aqi")
       .data(daily)
       .join("circle")
       .attr("class", "dot-aqi")
       .attr("cx", (d) => x(d.day))
       .attr("cy", (d) => y(d.aqi))
-      .attr("r", 3);
-  }
-
-  function renderPollutantChart(selector, daily) {
-    const el = d3.select(selector);
-    el.selectAll("*").remove();
-    const margin = chartMargins();
-    const W = chartContainerWidth(el.node());
-    const H = 280;
-    const w = W - margin.left - margin.right;
-    const h = H - margin.top - margin.bottom;
-
-    const svg = mountSvg(selector, W, H);
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const x = d3.scaleLinear().domain([1, d3.max(daily, (d) => d.day)]).range([0, w]);
-
-    const series = [
-      { key: "pm25", label: "PM2.5", cls: "line-pm25" },
-      { key: "no2", label: "NO₂", cls: "line-no2" },
-      { key: "o3", label: "O₃", cls: "line-o3" },
-      { key: "so2", label: "SO₂", cls: "line-so2" },
-    ];
-
-    const allVals = daily.flatMap((d) => series.map((s) => d[s.key]));
-    const y = d3.scaleLinear().domain([0, d3.max(allVals) * 1.1]).nice().range([h, 0]);
-
-    g.append("g")
-      .attr("class", "grid")
-      .call(d3.axisLeft(y).tickSize(-w).tickFormat("").ticks(8))
-      .call((g) => g.select(".domain").remove());
-
-    g.append("g")
-      .attr("class", "axis")
-      .attr("transform", `translate(0,${h})`)
-      .call(d3.axisBottom(x).ticks(8).tickFormat((d) => `Day ${d}`));
-
-    g.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(8));
-
-    const line = d3
-      .line()
-      .x((d) => x(d.day))
-      .curve(d3.curveMonotoneX);
-
-    series.forEach((s) => {
-      g.append("path")
-        .datum(daily)
-        .attr("class", `line-pollutant ${s.cls}`)
-        .attr("d", line.y((d) => y(d[s.key])));
-    });
-
-    const legend = svg
-      .append("g")
-      .attr("transform", `translate(${margin.left}, 8)`);
-    series.forEach((s, i) => {
-      const lg = legend.append("g").attr("transform", `translate(${i * 72}, 0)`);
-      lg.append("line")
-        .attr("class", `line-pollutant ${s.cls}`)
-        .attr("x1", 0)
-        .attr("x2", 16)
-        .attr("y1", 4)
-        .attr("y2", 4);
-      lg.append("text").attr("x", 20).attr("y", 8).attr("fill", "#a8adb4").attr("font-size", 10).text(s.label);
-    });
-  }
-
-  function renderHourlyChart(selector, hourly) {
-    const el = d3.select(selector);
-    el.selectAll("*").remove();
-    if (!hourly.length) {
-      el.append("p").attr("fill", "#a8adb4").text("No hourly data for this month.");
-      return;
-    }
-
-    const margin = chartMargins();
-    const W = chartContainerWidth(el.node());
-    const H = 200;
-    const w = W - margin.left - margin.right;
-    const h = H - margin.top - margin.bottom;
-
-    const svg = mountSvg(selector, W, H);
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const x = d3
-      .scaleLinear()
-      .domain([0, hourly.length - 1])
-      .range([0, w]);
-    const y = d3
-      .scaleLinear()
-      .domain([0, d3.max(hourly, (d) => d.aqi) * 1.05])
-      .nice()
-      .range([h, 0]);
-
-    g.append("g")
-      .attr("class", "grid")
-      .call(d3.axisLeft(y).tickSize(-w).tickFormat("").ticks(4))
-      .call((sel) => sel.select(".domain").remove());
-
-    g.append("g")
-      .attr("class", "axis")
-      .attr("transform", `translate(0,${h})`)
-      .call(
-        d3
-          .axisBottom(x)
-          .ticks(6)
-          .tickFormat((i) => {
-            const t = hourly[Math.round(i)]?.t ?? "";
-            return t.slice(8, 10) || "";
-          })
-      );
-
-    g.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(4));
-
-    const line = d3
-      .line()
-      .x((_, i) => x(i))
-      .y((d) => y(d.aqi))
-      .curve(d3.curveMonotoneX);
-
-    g.append("path").datum(hourly).attr("class", "line-aqi").attr("d", line);
-  }
-
-  function addRefLineLabel(g, x, y, viewYear, viewMonth, viewDaily, margin, w) {
-    const anchor = viewDaily.reduce((best, d) => (d.aqi > best.aqi ? d : best), viewDaily[0]);
-    const ax = x(anchor.day);
-    const ay = y(anchor.aqi);
-    const mName = MONTHS[viewMonth - 1];
-    const labelG = g.append("g").attr("class", "ref-line-label");
-    const boxW = 128;
-    const boxH = 34;
-    let lx = ax - boxW / 2;
-    let ly = ay - boxH - 10;
-    lx = Math.max(margin.left, Math.min(margin.left + w - boxW, lx));
-    ly = Math.max(margin.top + 4, ly);
-
-    labelG
-      .append("line")
-      .attr("x1", ax)
-      .attr("y1", ay)
-      .attr("x2", lx + boxW / 2)
-      .attr("y2", ly + boxH)
-      .attr("stroke", "rgba(160,168,178,0.5)")
-      .attr("stroke-width", 1)
-      .attr("stroke-dasharray", "3,3");
-
-    labelG
-      .append("rect")
-      .attr("x", lx)
-      .attr("y", ly)
-      .attr("width", boxW)
-      .attr("height", boxH)
-      .attr("rx", 5)
-      .attr("fill", "rgba(42,40,38,0.92)")
-      .attr("stroke", "rgba(180,188,198,0.45)");
-
-    labelG
-      .append("text")
-      .attr("x", lx + boxW / 2)
-      .attr("y", ly + 14)
-      .attr("text-anchor", "middle")
-      .attr("fill", "#b8c0c8")
-      .attr("font-size", 11)
-      .attr("font-weight", "600")
-      .text(`${mName} ${viewYear}`);
-
-    labelG
-      .append("text")
-      .attr("x", lx + boxW / 2)
-      .attr("y", ly + 27)
-      .attr("text-anchor", "middle")
-      .attr("fill", "rgba(138,160,190,0.9)")
-      .attr("font-size", 9)
-      .text("reference · not your 2026 draw");
+      .attr("r", 2.4);
   }
 
   function redrawUserDraw(ctx, x, y) {
@@ -653,7 +490,7 @@
     el.selectAll("*").remove();
 
     const W = chartContainerWidth(el.node());
-    const H = 220;
+    const H = EMBED ? 320 : 220;
     const mg = chartMargins();
     const iw = W - mg.left - mg.right;
     const ih = H - mg.top - mg.bottom;
@@ -669,19 +506,12 @@
       .range([ih, 0]);
 
     const svg = mountSvg("#chart-reveal", W, H);
+    const clipId = nextGradId("chart-clip");
+    svg.append("defs").append("clipPath").attr("id", clipId).append("rect").attr("width", iw).attr("height", ih);
     const g = svg.append("g").attr("transform", `translate(${mg.left},${mg.top})`);
 
-    g.append("g")
-      .attr("class", "grid")
-      .call(d3.axisLeft(y2).tickSize(-iw).tickFormat("").ticks(8))
-      .call((sel) => sel.select(".domain").remove());
-
-    g.append("g")
-      .attr("class", "axis")
-      .attr("transform", `translate(0,${ih})`)
-      .call(d3.axisBottom(x2).ticks(8).tickFormat((d) => `Day ${d}`));
-
-    g.append("g").attr("class", "axis").call(d3.axisLeft(y2).ticks(8));
+    drawGrid(g, y2, iw, 5);
+    drawAxes(g, x2, y2, ih, 6, 5);
 
     const line = d3
       .line()
@@ -689,9 +519,9 @@
       .y((d) => y2(d.aqi))
       .curve(d3.curveMonotoneX);
 
-    g.append("path").datum(series).attr("class", "line-actual").attr("d", line);
+    g.append("g").attr("clip-path", `url(#${clipId})`).append("path").datum(series).attr("class", "line-actual").attr("d", line);
 
-    panel.scrollIntoView({ behavior: "smooth", block: EMBED ? "nearest" : "start" });
+    panel.scrollIntoView({ behavior: "smooth", block: EMBED ? "center" : "start" });
   }
 
   /* ─── Draw 2026 prediction (2023-style) ─── */
@@ -705,7 +535,7 @@
     const H = wrap.clientHeight;
     canvas.width = W;
     canvas.height = H;
-    const margin = { top: 28, right: 18, bottom: 48, left: 58 };
+    const margin = { top: 32, right: 24, bottom: 48, left: 72 };
     const w = W - margin.left - margin.right;
     const h = H - margin.top - margin.bottom;
 
@@ -730,7 +560,20 @@
 
     state.predictScales = { x, y, maxDay, yMax, margin, W, H, viewYear, viewMonth };
 
-    const g = svg.attr("width", W).attr("height", H).append("g");
+    const clipId = nextGradId("predict-clip");
+    svg
+      .attr("width", W)
+      .attr("height", H)
+      .append("defs")
+      .append("clipPath")
+      .attr("id", clipId)
+      .append("rect")
+      .attr("x", margin.left)
+      .attr("y", margin.top)
+      .attr("width", w)
+      .attr("height", h);
+
+    const g = svg.append("g");
 
     g.append("g")
       .attr("class", "grid")
@@ -759,11 +602,11 @@
         .datum(viewDaily)
         .attr("fill", "none")
         .attr("class", "line-ref")
+        .attr("clip-path", `url(#${clipId})`)
         .attr("stroke", "rgba(180,188,198,0.5)")
         .attr("stroke-width", 1.5)
         .attr("stroke-dasharray", "5,4")
         .attr("d", line);
-      addRefLineLabel(g, x, y, viewYear, viewMonth, viewDaily, margin, w);
     }
 
     const ctx = canvas.getContext("2d");
@@ -830,6 +673,14 @@
     slider.addEventListener("input", () => {
       state.year = +slider.value;
       renderRadial();
+      if (state.selectedMonth) {
+        const month = state.selectedMonth.month;
+        if (monthData(state.year, month)) {
+          openDetail(state.year, month, false);
+        } else {
+          closeDetail();
+        }
+      }
     });
 
     $("#year-play").addEventListener("click", () => {
@@ -847,13 +698,41 @@
         state.year = years[i];
         slider.value = state.year;
         renderRadial();
+        if (state.selectedMonth) {
+          const month = state.selectedMonth.month;
+          if (monthData(state.year, month)) openDetail(state.year, month, false);
+          else closeDetail();
+        }
       }, 1200);
     });
 
     $("#btn-back").addEventListener("click", closeDetail);
   }
 
+  function mountEmbeddedDetailRail() {
+    if (!EMBED || !viewDetail) return;
+    const grid = document.querySelector(".dashboard-grid");
+    const panelSide = document.querySelector(".panel-side");
+    const radialPanel = document.querySelector(".panel-radial");
+    if (!grid || !panelSide || !radialPanel || document.querySelector(".dashboard-detail-rail")) return;
+
+    const rail = document.createElement("div");
+    rail.className = "dashboard-detail-rail";
+    grid.insertBefore(rail, panelSide);
+    radialPanel.appendChild(panelSide);
+    rail.appendChild(viewDetail);
+
+    const predict = document.querySelector("#predict-section");
+    if (predict) {
+      const stage = document.createElement("div");
+      stage.className = "dashboard-predict-stage";
+      grid.insertAdjacentElement("afterend", stage);
+      stage.appendChild(predict);
+    }
+  }
+
   function init() {
+    mountEmbeddedDetailRail();
     buildLegend();
     bindControls();
     renderRadial();
@@ -889,4 +768,3 @@
 
   boot();
 })();
-

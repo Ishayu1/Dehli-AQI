@@ -22,8 +22,11 @@
 
 #aqi-dashboard {
   position: relative;
+  isolation: isolate;
   font-family: var(--font);
-  background: linear-gradient(165deg, #e08855 0%, var(--bg) 35%, var(--bg-deep) 100%);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
   color: var(--text);
   line-height: 1.5;
   min-height: auto;
@@ -31,9 +34,9 @@
 }
 
 #aqi-dashboard #app {
-  max-width: 1100px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 0 1.5rem 3rem;
+  padding: 0 1.5rem 2rem;
   overflow: visible;
 }
 
@@ -87,7 +90,8 @@
 #aqi-dashboard .view-active { display: block; }
 
 #aqi-dashboard .hero {
-  padding: 3rem 0 2rem;
+  display: none;
+  padding: 0;
   max-width: 720px;
 }
 
@@ -117,13 +121,48 @@
 
 #aqi-dashboard .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(560px, 1fr);
   gap: 1.5rem;
   align-items: start;
 }
 
-#aqi-dashboard .panel-radial {
+#aqi-dashboard .app.is-detail .dashboard-grid {
+  grid-template-columns: minmax(670px, 0.95fr) minmax(400px, 0.7fr);
+  gap: 1.25rem;
+}
+
+#aqi-dashboard .dashboard-detail-rail {
+  display: none;
+  gap: 1rem;
+  align-content: start;
   min-width: 0;
+}
+
+#aqi-dashboard .app.is-detail .dashboard-detail-rail {
+  display: grid;
+}
+
+#aqi-dashboard .panel-radial {
+  display: grid;
+  grid-template-columns: minmax(520px, 1fr) minmax(150px, 190px);
+  gap: 0.7rem;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+#aqi-dashboard .app.is-detail .panel-radial {
+  grid-template-columns: minmax(430px, 1fr) 200px;
+  align-content: start;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+#aqi-dashboard .panel-radial .panel-head {
+  display: none;
+  grid-column: 1 / -1;
 }
 
 #aqi-dashboard .panel {
@@ -132,6 +171,13 @@
   border-radius: 12px;
   padding: 1.25rem 1.5rem;
   color: var(--text-on-dark);
+}
+
+#aqi-dashboard .panel.panel-radial {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 #aqi-dashboard .panel-head h2 {
@@ -151,14 +197,20 @@
 #aqi-dashboard .radial-wrap {
   display: flex;
   justify-content: center;
-  padding: 1rem 0 0.5rem;
+  align-items: center;
+  min-width: 0;
+  padding: 0;
 }
 
 #aqi-dashboard .radial-chart-box {
   position: relative;
-  width: min(520px, 100%);
+  width: min(760px, 100%);
   aspect-ratio: 1;
   margin: 0 auto;
+}
+
+#aqi-dashboard .app.is-detail .radial-chart-box {
+  width: min(500px, 100%);
 }
 
 #aqi-dashboard .radial-chart-box svg {
@@ -173,7 +225,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: 1.75rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: var(--accent);
   pointer-events: none;
@@ -205,17 +257,17 @@
 /* Year control */
 #aqi-dashboard .year-control label {
   display: block;
-  font-size: 0.7rem;
-  letter-spacing: 0.15em;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted-on-dark);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.35rem;
 }
 
 #aqi-dashboard #year-slider {
   width: 100%;
   accent-color: var(--accent-strong);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.35rem;
 }
 
 #aqi-dashboard .year-meta {
@@ -225,15 +277,15 @@
 }
 
 #aqi-dashboard .year-big {
-  font-size: 2rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--accent);
 }
 
 #aqi-dashboard .btn-ghost {
   font-family: var(--font);
-  font-size: 0.8rem;
-  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
+  padding: 0.28rem 0.5rem;
   background: transparent;
   border: 1px solid rgba(180, 188, 198, 0.35);
   border-radius: 6px;
@@ -248,21 +300,22 @@
 }
 
 #aqi-dashboard .legend-block {
-  margin-top: 1.75rem;
-  padding-top: 1.5rem;
+  margin-top: 0.55rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--border);
 }
 
 #aqi-dashboard .legend-block h3 {
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted-on-dark);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 #aqi-dashboard .legend-note {
-  font-size: 0.75rem;
+  display: none;
+  font-size: 0.7rem;
   color: var(--muted-on-dark);
   margin-bottom: 0.75rem;
 }
@@ -274,61 +327,84 @@
 #aqi-dashboard .legend-bins li {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  font-size: 0.78rem;
+  gap: 0.42rem;
+  font-size: 0.58rem;
   color: var(--muted-on-dark);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.2rem;
+  line-height: 1.25;
 }
 
 #aqi-dashboard .legend-swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
   flex-shrink: 0;
 }
 
 #aqi-dashboard .stat-block {
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--border);
 }
 
 #aqi-dashboard .stat-block h3 {
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 0.75rem;
+  color: var(--muted-on-dark);
+  margin-bottom: 0.35rem;
 }
 
 #aqi-dashboard .stat-list div {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.05rem;
+  font-size: 0.56rem;
+  margin-bottom: 0.18rem;
+  line-height: 1.15;
 }
 
 #aqi-dashboard .stat-list dt { color: var(--muted-on-dark); }
 #aqi-dashboard .stat-list dd { font-weight: 600; color: var(--accent); }
 
-/* ─── Detail view ─── */
+#aqi-dashboard .panel-side {
+  align-self: center;
+  background: var(--bg-card);
+  border-color: rgba(180, 188, 198, 0.18);
+  border-radius: 8px;
+  padding: 0.62rem;
+}
+
+#aqi-dashboard .app.is-detail .panel-side {
+  width: 200px;
+  justify-self: stretch;
+  align-self: center;
+  padding: 0.65rem;
+}
+
+/* ─── Detail side panel ─── */
 #aqi-dashboard #view-detail {
-  background: linear-gradient(180deg, #e08855 0%, var(--bg) 30%, var(--bg-deep) 100%);
-  background-attachment: scroll;
+  background: transparent;
   color: var(--text-on-dark);
+  min-height: 0;
+  padding: 0;
+  position: relative;
 }
 
 #aqi-dashboard .detail-nav {
+  position: static;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 0 1rem;
+  gap: 1rem;
+  padding: 0;
+  margin-bottom: 0.45rem;
 }
 
 #aqi-dashboard .btn-back {
   font-family: var(--font);
-  font-size: 0.85rem;
-  padding: 0.5rem 1rem;
+  font-size: 0.7rem;
+  padding: 0.34rem 0.62rem;
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -340,39 +416,44 @@
 #aqi-dashboard .btn-back:hover { background: var(--accent-dim); }
 
 #aqi-dashboard .detail-badge {
-  font-size: 0.7rem;
-  letter-spacing: 0.15em;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted-on-dark);
 }
 
 #aqi-dashboard .detail-hero {
-  margin-bottom: 2rem;
+  display: none;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 0.65rem;
+  padding: 3.2rem 0.8rem 0.85rem;
 }
 
 #aqi-dashboard .detail-hero h1 {
   font-family: var(--serif);
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
   font-weight: 400;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   color: var(--text-on-dark);
 }
 
-#aqi-dashboard .detail-sub { color: var(--muted-on-dark); font-size: 1rem; }
+#aqi-dashboard .detail-sub { color: var(--muted-on-dark); font-size: 0.72rem; }
 
 #aqi-dashboard .detail-charts {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-  margin-bottom: 3rem;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-bottom: 0;
   min-width: 0;
 }
 
 #aqi-dashboard .chart-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 8px;
+  padding: 0.95rem;
   min-width: 0;
   max-width: 100%;
 }
@@ -382,7 +463,8 @@
 #aqi-dashboard .chart-narrow { grid-column: 1 / -1; }
 
 #aqi-dashboard .chart-head h2 {
-  font-size: 0.75rem;
+  display: block;
+  font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -392,33 +474,42 @@
 #aqi-dashboard .chart-unit { font-weight: 400; color: var(--muted); }
 
 #aqi-dashboard .chart-desc {
-  font-size: 0.8rem;
-  color: var(--muted);
+  display: block;
+  font-size: 0.7rem;
+  color: var(--muted-on-dark);
   margin-top: 0.25rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.65rem;
 }
 
 #aqi-dashboard .chart-body {
   width: 100%;
-  min-height: 220px;
-  overflow: visible;
+  min-height: 0;
+  overflow: hidden;
   position: relative;
 }
 
-#aqi-dashboard .chart-tall { min-height: 280px; }
+#aqi-dashboard .chart-tall { min-height: 0; }
 
 /* D3 chart styles */
 #aqi-dashboard .chart-body svg {
   display: block;
   width: 100%;
   height: auto;
-  overflow: visible;
+  overflow: hidden;
 }
 
 #aqi-dashboard .axis text {
   fill: #a8adb4;
-  font-size: 11px;
+  font-size: 9.5px;
   font-family: var(--font);
+}
+
+#aqi-dashboard .x-axis text {
+  text-anchor: middle;
+}
+
+#aqi-dashboard .y-axis text {
+  text-anchor: end;
 }
 
 #aqi-dashboard .axis line,
@@ -468,30 +559,42 @@
 }
 
 /* ─── Predict section ─── */
+#aqi-dashboard .dashboard-predict-stage {
+  display: none;
+  width: min(980px, 100%);
+  margin: 1rem auto 0;
+}
+
+#aqi-dashboard .dashboard-predict-stage.is-active {
+  display: block;
+}
+
 #aqi-dashboard .predict-section {
-  padding: 3rem 0 5rem;
-  border-top: 1px solid var(--border);
+  padding: 0;
+  border-top: 0;
 }
 
 #aqi-dashboard .predict-header {
-  max-width: 640px;
-  margin-bottom: 1.5rem;
+  display: none;
+  max-width: 760px;
+  margin: 0 auto 1rem;
+  text-align: center;
 }
 
 #aqi-dashboard .predict-header h2 {
   font-family: var(--serif);
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  margin-bottom: 0.45rem;
 }
 
 #aqi-dashboard .predict-header h2 { color: var(--text-on-dark); }
-#aqi-dashboard .predict-header p { color: var(--muted-on-dark); line-height: 1.65; }
+#aqi-dashboard .predict-header p { color: var(--muted-on-dark); font-size: 0.95rem; line-height: 1.55; }
 
 #aqi-dashboard .predict-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 10px;
+  padding: 1.15rem;
 }
 
 #aqi-dashboard .model-stats {
@@ -536,10 +639,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
-#aqi-dashboard .draw-hint { font-size: 0.8rem; color: var(--muted-on-dark); }
+#aqi-dashboard .draw-hint { font-size: 0.85rem; color: var(--muted-on-dark); }
 
 #aqi-dashboard .compare-panel {
   margin-top: 1.5rem;
@@ -574,7 +677,7 @@
 #aqi-dashboard .predict-canvas-wrap {
   position: relative;
   width: 100%;
-  height: 320px;
+  height: 360px;
   background: linear-gradient(180deg, #353230 0%, #2a2826 100%);
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -599,16 +702,16 @@
 }
 
 #aqi-dashboard .predict-actions {
-  margin-top: 1.25rem;
+  margin-top: 0.9rem;
   display: flex;
   gap: 1rem;
 }
 
 #aqi-dashboard .btn-primary {
   font-family: var(--font);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.25rem;
   background: var(--accent-strong);
   color: #1a1a1a;
   border: none;
@@ -629,8 +732,8 @@
 }
 
 #aqi-dashboard .reveal-panel {
-  margin-top: 2rem;
-  padding-top: 2rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
   border-top: 1px solid var(--border);
   animation: fade-in 0.6s ease;
 }
@@ -651,6 +754,8 @@
 
 @media (max-width: 900px) {
   #aqi-dashboard .dashboard-grid { grid-template-columns: 1fr; }
+  #aqi-dashboard .panel-radial { grid-template-columns: 1fr; }
+  #aqi-dashboard .dashboard-detail-rail { grid-template-columns: 1fr; }
   #aqi-dashboard .detail-charts { grid-template-columns: 1fr; }
   #aqi-dashboard .view { padding: 0 1rem 3rem; }
 }

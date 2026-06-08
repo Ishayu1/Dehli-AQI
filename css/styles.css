@@ -298,9 +298,15 @@ body.tunnel-locked #app.hidden {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: minmax(360px, 1fr) minmax(380px, 0.9fr);
   gap: 1.5rem;
   align-items: start;
+}
+
+.dashboard-detail-rail {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
 }
 
 .panel {
@@ -468,7 +474,7 @@ body.tunnel-locked #app.hidden {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--muted-on-dark);
   margin-bottom: 0.75rem;
 }
 
@@ -482,18 +488,21 @@ body.tunnel-locked #app.hidden {
 .stat-list dt { color: var(--muted-on-dark); }
 .stat-list dd { font-weight: 600; color: var(--accent); }
 
-/* ─── Detail view ─── */
+/* ─── Detail side panel ─── */
 #view-detail {
-  background: linear-gradient(180deg, #e08855 0%, var(--bg) 30%, var(--bg-deep) 100%);
-  background-attachment: fixed;
+  background: transparent;
   color: var(--text-on-dark);
+  min-height: 0;
+  padding: 0;
 }
 
 .detail-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 0 1rem;
+  gap: 1rem;
+  padding: 0;
+  margin-bottom: 0.9rem;
 }
 
 .btn-back {
@@ -518,12 +527,16 @@ body.tunnel-locked #app.hidden {
 }
 
 .detail-hero {
-  margin-bottom: 2rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  padding: 1rem 1.15rem;
 }
 
 .detail-hero h1 {
   font-family: var(--serif);
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.7rem, 3vw, 2.25rem);
   font-weight: 400;
   margin-bottom: 0.5rem;
   color: var(--text-on-dark);
@@ -533,16 +546,16 @@ body.tunnel-locked #app.hidden {
 
 .detail-charts {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-  margin-bottom: 3rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .chart-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 1rem;
 }
 
 .chart-primary { grid-column: 1 / -1; }
@@ -568,10 +581,10 @@ body.tunnel-locked #app.hidden {
 
 .chart-body {
   width: 100%;
-  min-height: 220px;
+  min-height: 180px;
 }
 
-.chart-tall { min-height: 280px; }
+.chart-tall { min-height: 220px; }
 
 /* D3 chart styles */
 .chart-body svg {
@@ -620,19 +633,19 @@ body.tunnel-locked #app.hidden {
 
 /* ─── Predict section ─── */
 .predict-section {
-  padding: 3rem 0 5rem;
+  padding: 1.25rem 0 0;
   border-top: 1px solid var(--border);
 }
 
 .predict-header {
-  max-width: 640px;
-  margin-bottom: 1.5rem;
+  max-width: none;
+  margin-bottom: 1rem;
 }
 
 .predict-header h2 {
   font-family: var(--serif);
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.55rem;
+  margin-bottom: 0.5rem;
 }
 
 .predict-header h2 { color: var(--text-on-dark); }
@@ -642,7 +655,7 @@ body.tunnel-locked #app.hidden {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1rem;
 }
 
 .model-stats {
@@ -726,7 +739,7 @@ body.tunnel-locked #app.hidden {
 .predict-canvas-wrap {
   position: relative;
   width: 100%;
-  height: 320px;
+  height: 280px;
   background: linear-gradient(180deg, #353230 0%, #2a2826 100%);
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -781,8 +794,8 @@ body.tunnel-locked #app.hidden {
 }
 
 .reveal-panel {
-  margin-top: 2rem;
-  padding-top: 2rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
   border-top: 1px solid var(--border);
   animation: fade-in 0.6s ease;
 }
@@ -803,6 +816,7 @@ body.tunnel-locked #app.hidden {
 
 @media (max-width: 900px) {
   .dashboard-grid { grid-template-columns: 1fr; }
+  .dashboard-detail-rail { grid-template-columns: 1fr; }
   .detail-charts { grid-template-columns: 1fr; }
   .view { padding: 0 1rem 3rem; }
 }

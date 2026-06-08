@@ -3528,11 +3528,13 @@ body {
 /* Embedded Delhi AQI dashboard (after fire counts) */
 .aqi-dashboard-section {
   position: relative;
-  padding: clamp(3rem, 6vw, 5rem) 0 clamp(4rem, 8vw, 6rem);
+  isolation: isolate;
+  padding: clamp(1.25rem, 3vw, 2rem) 0 clamp(3rem, 6vw, 4.5rem);
   background: linear-gradient(180deg, #e2b579 0%, #d4734a 18%, #c96842 100%);
 }
 
 .aqi-dashboard-intro {
+  display: none;
   max-width: 720px;
   margin: 0 auto clamp(2rem, 5vw, 3rem);
   padding: 0 clamp(1.25rem, 5vw, 4rem);

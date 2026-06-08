@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Breathing Smoke · Delhi AQI</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=embed-v19" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/dashboard.css?v=embed-v7" />
+    <link rel="stylesheet" href="css/dashboard.css?v=embed-v19" />
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://unpkg.com/scrollama"></script>
   </head>
@@ -483,8 +483,9 @@
         <div class="body-copy">
           <p>
             Hourly readings from Delhi sensors, rolled into monthly air quality
-            bands. Select a year, click a month to drill into daily pollution and
-            pollutants — then draw what you expect for the same month in
+            bands. Select a year, then click a month to load daily pollution,
+            pollutant mix, and hourly intensity in the side panel. Draw what you
+            expect for the same month in
             <strong>2026</strong> and reveal what the sensors show.
           </p>
         </div>
@@ -504,8 +505,8 @@
         <p class="eyebrow">Delhi · Hourly sensors · 2020–2023</p>
         <h1 class="title">The Smoke <em>That Stays</em></h1>
         <p class="subtitle">
-          Mean monthly AQI in discrete health bands. Select a year, then click a month to drill down —
-          explore pollutants, then see a <strong>2026</strong> forecast from a simple trend model.
+          Mean monthly AQI in discrete health bands. Select a year, then click a month
+          to compare the season's daily signal against a <strong>2026</strong> curve.
         </p>
       </header>
 
@@ -513,7 +514,7 @@
         <div class="panel panel-radial">
           <div class="panel-head">
             <h2>Monthly AQI calendar</h2>
-            <p class="panel-hint">Click a colored month to explore · Oct–Nov = stubble season</p>
+            <p class="panel-hint">Click a colored month to load the side plots · Oct-Nov = stubble season</p>
           </div>
           <div class="radial-wrap">
             <div class="radial-chart-box">
@@ -554,8 +555,8 @@
     <!-- ═══ DETAIL: month drill-down + predict ═══ -->
     <section id="view-detail" class="view">
       <nav class="detail-nav">
-        <button type="button" id="btn-back" class="btn-back">← Back to calendar</button>
-        <span class="detail-badge" id="detail-badge">Delhi · 2020</span>
+        <button type="button" id="btn-back" class="btn-back">Clear month</button>
+        <span class="detail-badge" id="detail-badge">Select a month</span>
       </nav>
 
       <header class="detail-hero">
@@ -566,26 +567,10 @@
       <div class="detail-charts">
         <article class="chart-card chart-primary">
           <header class="chart-head">
-            <h2>AQI trend <span class="chart-unit">(daily mean)</span></h2>
-            <p class="chart-desc" id="chart-aqi-desc">Air Quality Index across the month</p>
+            <h2>Daily AQI trend <span class="chart-unit">(selected month)</span></h2>
+            <p class="chart-desc" id="chart-aqi-desc">This is the reference pattern to compare against your 2026 draw.</p>
           </header>
           <div class="chart-body" id="chart-aqi"></div>
-        </article>
-
-        <article class="chart-card">
-          <header class="chart-head">
-            <h2>Pollutants driving AQI</h2>
-            <p class="chart-desc">PM2.5, NO₂, O₃, SO₂ — normalized view</p>
-          </header>
-          <div class="chart-body chart-tall" id="chart-pollutants"></div>
-        </article>
-
-        <article class="chart-card chart-narrow">
-          <header class="chart-head">
-            <h2>Hourly intensity</h2>
-            <p class="chart-desc">When pollution spikes within the day</p>
-          </header>
-          <div class="chart-body" id="chart-hourly"></div>
         </article>
       </div>
 
@@ -1075,8 +1060,8 @@
         });
       })();
     </script>
-    <script src="js/bins.js?v=embed-v7"></script>
-    <script src="js/aqi-dashboard.js?v=embed-v7"></script>
+    <script src="js/bins.js?v=embed-v19"></script>
+    <script src="js/aqi-dashboard.js?v=embed-v19"></script>
     <script src="app.js"></script>
   </body>
 </html>
